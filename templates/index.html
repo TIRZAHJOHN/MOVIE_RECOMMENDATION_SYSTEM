@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CineScout — AI Movie Discovery</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<!-- Animated background petals -->
+<div class="petal-bg" id="petalBg"></div>
+
+<!-- Floating particles -->
+<div class="particles" id="particles"></div>
+
+<!-- ── HERO ─────────────────────────────────────────── -->
+<header class="hero">
+  <nav class="nav">
+    <div class="logo">
+      <span class="logo-icon">✦</span>
+      <span>CineScout</span>
+    </div>
+    <div class="nav-stats">
+      <div class="stat-pill">
+        <span class="stat-num">{{ total_movies }}</span>
+        <span class="stat-label">Films</span>
+      </div>
+      <div class="stat-pill rf">
+        <span class="stat-num">{{ rf_acc }}%</span>
+        <span class="stat-label">RF</span>
+      </div>
+      <div class="stat-pill svm">
+        <span class="stat-num">{{ svm_acc }}%</span>
+        <span class="stat-label">SVM</span>
+      </div>
+    </div>
+  </nav>
+
+  <div class="hero-content">
+    <div class="hero-badge">Powered by Random Forest & SVM</div>
+    <h1 class="hero-title">
+      Discover Your<br>
+      <em>Next Obsession</em>
+    </h1>
+    <p class="hero-sub">AI-driven movie recommendations that understand your taste</p>
+
+    <!-- Mode Tabs -->
+    <div class="mode-tabs">
+      <button class="tab-btn active" data-mode="movie">
+        <span class="tab-icon">🎬</span> By Movie
+      </button>
+      <button class="tab-btn" data-mode="vibe">
+        <span class="tab-icon">✨</span> By Vibe
+      </button>
+      <button class="tab-btn" data-mode="genre">
+        <span class="tab-icon">🎭</span> By Genre
+      </button>
+    </div>
+  </div>
+
+  <div class="hero-scroll">
+    <div class="scroll-line"></div>
+    <span>scroll</span>
+  </div>
+</header>
+
+<!-- ── SEARCH PANEL ──────────────────────────────────── -->
+<section class="search-section" id="searchSection">
+
+  <!-- MOVIE MODE -->
+  <div class="mode-panel active" id="mode-movie">
+    <div class="panel-header">
+      <h2>Find movies similar to one you love</h2>
+      <p>Enter a title and our content-based engine finds your next watch</p>
+    </div>
+    <div class="search-box">
+      <div class="input-wrap">
+        <span class="input-icon">🔍</span>
+        <input type="text" id="movieInput" placeholder="e.g. The Dark Knight, Inception..." autocomplete="off">
+        <div class="autocomplete-list" id="autocompleteList"></div>
+      </div>
+      <div class="count-selector">
+        <label>Results</label>
+        <div class="count-btns">
+          <button class="cnt active" data-n="6">6</button>
+          <button class="cnt" data-n="10">10</button>
+          <button class="cnt" data-n="15">15</button>
+        </div>
+      </div>
+      <button class="search-btn" id="movieBtn">
+        <span>Discover</span>
+        <span class="btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- VIBE MODE -->
+  <div class="mode-panel" id="mode-vibe">
+    <div class="panel-header">
+      <h2>Describe what you're in the mood for</h2>
+      <p>Our ML model (RF or SVM) decodes your vibe and finds matching films</p>
+    </div>
+    <div class="vibe-grid">
+      <div class="vibe-presets">
+        <span class="preset-label">Quick vibes →</span>
+        <button class="vibe-chip" data-vibe="thrilling action hero adventure saving the world">🔥 Epic Action</button>
+        <button class="vibe-chip" data-vibe="romantic love story emotional heartwarming relationship">💕 Romance</button>
+        <button class="vibe-chip" data-vibe="scary horror dark psychological thriller mystery">👻 Horror</button>
+        <button class="vibe-chip" data-vibe="funny comedy witty humor lighthearted feel good">😂 Comedy</button>
+        <button class="vibe-chip" data-vibe="mind-bending sci-fi space future technology dystopia">🚀 Sci-Fi</button>
+        <button class="vibe-chip" data-vibe="animated family adventure colorful magical fantasy">🌈 Family</button>
+      </div>
+      <textarea id="vibeInput" placeholder="e.g. I want something mind-bending with plot twists, set in the future..."></textarea>
+      <div class="vibe-controls">
+        <div class="model-toggle">
+          <span>Model:</span>
+          <button class="model-btn active" data-model="rf">Random Forest</button>
+          <button class="model-btn" data-model="svm">SVM</button>
+        </div>
+        <button class="search-btn" id="vibeBtn">
+          <span>Analyse Vibe</span>
+          <span class="btn-arrow">→</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- GENRE MODE -->
+  <div class="mode-panel" id="mode-genre">
+    <div class="panel-header">
+      <h2>Pick your favourite genres</h2>
+      <p>Mix and match — the more you select, the more refined the picks</p>
+    </div>
+    <div class="genre-cloud" id="genreCloud">
+      {% for genre in genres %}
+      <button class="genre-tag" data-genre="{{ genre }}">{{ genre }}</button>
+      {% endfor %}
+    </div>
+    <div class="genre-actions">
+      <div class="selected-genres" id="selectedGenres">
+        <span class="no-sel">No genres selected yet</span>
+      </div>
+      <button class="search-btn" id="genreBtn">
+        <span>Find Films</span>
+        <span class="btn-arrow">→</span>
+      </button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ── RESULTS ───────────────────────────────────────── -->
+<section class="results-section" id="resultsSection" style="display:none">
+  <div class="results-header">
+    <div class="results-meta" id="resultsMeta"></div>
+    <div class="results-model-badge" id="modelBadge" style="display:none"></div>
+    <div class="view-toggle">
+      <button class="view-btn active" data-view="grid" title="Grid">⊞</button>
+      <button class="view-btn" data-view="list" title="List">☰</button>
+    </div>
+  </div>
+
+  <!-- ML insights bar (vibe mode) -->
+  <div class="insights-bar" id="insightsBar" style="display:none">
+    <div class="insight-item">
+      <span class="insight-label">Detected Genres</span>
+      <div class="insight-genres" id="insightGenres"></div>
+    </div>
+    <div class="insight-item">
+      <span class="insight-label">Model Confidence</span>
+      <div class="confidence-bars" id="confidenceBars"></div>
+    </div>
+  </div>
+
+  <div class="cards-grid" id="cardsGrid"></div>
+
+  <div class="load-more-wrap">
+    <button class="load-more-btn" id="loadMoreBtn" style="display:none">Load more ↓</button>
+  </div>
+</section>
+
+<!-- ── LOADING ───────────────────────────────────────── -->
+<div class="loading-overlay" id="loadingOverlay" style="display:none">
+  <div class="loading-inner">
+    <div class="film-reel">
+      <div class="reel-ring"></div>
+      <div class="reel-ring r2"></div>
+      <div class="reel-ring r3"></div>
+      <div class="reel-center">✦</div>
+    </div>
+    <p class="loading-text" id="loadingText">Scanning the archives...</p>
+  </div>
+</div>
+
+<!-- ── CARD DETAIL MODAL ─────────────────────────────── -->
+<div class="modal-overlay" id="modalOverlay" style="display:none">
+  <div class="modal-card" id="modalCard">
+    <button class="modal-close" id="modalClose">✕</button>
+    <div class="modal-content" id="modalContent"></div>
+  </div>
+</div>
+
+<!-- ── FOOTER ────────────────────────────────────────── -->
+<footer class="footer">
+  <div class="footer-inner">
+    <div class="footer-logo">✦ CineScout</div>
+    <div class="footer-copy">Built with Random Forest & SVM · TMDB Dataset · {{ total_movies }} films</div>
+  </div>
+</footer>
+
+<script src="/static/js/app.js"></script>
+</body>
+</html>
